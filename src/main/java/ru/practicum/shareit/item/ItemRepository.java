@@ -1,6 +1,7 @@
 package ru.practicum.shareit.item;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import ru.practicum.shareit.exceptions.ObjectNotFoundException;
 import ru.practicum.shareit.exceptions.ValidationException;
@@ -13,6 +14,8 @@ import java.util.*;
 @Repository
 public class ItemRepository {
     private final Map<Integer, Item> items = new HashMap<>();
+    @Autowired
+    private ItemMapper itemMapper;
     private static Integer count = 0;
 
     public Item createItem(Item item) {
@@ -60,7 +63,7 @@ public class ItemRepository {
         List<ItemDto> itemsOfUser = new ArrayList<>();
         for (Item item : items.values()) {
             if (item.getOwner().getId() == userId) {
-                itemsOfUser.add(ItemMapper.toItemDto(item));
+                itemsOfUser.add(itemMapper.toItemDto(item));
             }
         }
         return itemsOfUser;
@@ -73,7 +76,7 @@ public class ItemRepository {
                 if (item.getName().toLowerCase().contains(text.toLowerCase()) ||
                         item.getDescription().toLowerCase().contains(text.toLowerCase())) {
                     if (item.getAvailable().equals(true)) {
-                        resultItems.add(ItemMapper.toItemDto(item));
+                        resultItems.add(itemMapper.toItemDto(item));
                     }
                 }
             }
