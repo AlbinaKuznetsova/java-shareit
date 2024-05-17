@@ -4,7 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.stereotype.Component;
-import ru.practicum.shareit.item.model.Item;
+
 import java.time.LocalDateTime;
 
 @Component
@@ -16,7 +16,7 @@ public class CommentDto {
 
     private String text;
 
-    private Item item;
+    private Integer itemId;
 
     private String authorName;
 

@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.practicum.shareit.booking.BookingRepository;
+import ru.practicum.shareit.booking.BookingService;
 import ru.practicum.shareit.booking.dto.BookingDtoForItem;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.Status;
@@ -31,7 +31,7 @@ public class ItemServiceImpl implements ItemService {
     private final ItemRepository itemRepository;
     private final UserService userService;
     private final ItemMapper itemMapper;
-    private final BookingRepository bookingRepository;
+    private final BookingService bookingService;
     private final CommentRepository commentRepository;
     private final CommentMapper commentMapper;
 
@@ -77,8 +77,8 @@ public class ItemServiceImpl implements ItemService {
             ItemDtoWithDates itemDtoWithDates = itemMapper.toItemDtoWithDates(item);
             if (item.getOwner().getId() == userId) {
                 LocalDateTime now = LocalDateTime.now();
-                BookingDtoForItem nextBooking = bookingRepository.findFirst1ByItemIdAndStartIsAfterAndStatusOrderByStartAsc(item.getId(), now, Status.APPROVED);
-                BookingDtoForItem lastBooking = bookingRepository.findFirst1ByItemIdAndStartIsBeforeAndStatusOrderByStartDesc(item.getId(), now, Status.APPROVED);
+                BookingDtoForItem nextBooking = bookingService.getNextBooking(item.getId(), now, Status.APPROVED);
+                BookingDtoForItem lastBooking = bookingService.getLastBooking(item.getId(), now, Status.APPROVED);
                 itemDtoWithDates.setLastBooking(lastBooking);
                 itemDtoWithDates.setNextBooking(nextBooking);
             } else {
@@ -110,8 +110,8 @@ public class ItemServiceImpl implements ItemService {
         List<ItemDtoWithDates> itemDtoWithDatesList = new ArrayList<>();
         LocalDateTime now = LocalDateTime.now();
         for (Item item : items) {
-            BookingDtoForItem nextBooking = bookingRepository.findFirst1ByItemIdAndStartIsAfterAndStatusOrderByStartAsc(item.getId(), now, Status.APPROVED);
-            BookingDtoForItem lastBooking = bookingRepository.findFirst1ByItemIdAndStartIsBeforeAndStatusOrderByStartDesc(item.getId(), now, Status.APPROVED);
+            BookingDtoForItem nextBooking = bookingService.getNextBooking(item.getId(), now, Status.APPROVED);
+            BookingDtoForItem lastBooking = bookingService.getLastBooking(item.getId(), now, Status.APPROVED);
             ItemDtoWithDates itemDtoWithDates = itemMapper.toItemDtoWithDates(item);
             itemDtoWithDates.setLastBooking(lastBooking);
             itemDtoWithDates.setNextBooking(nextBooking);
@@ -132,7 +132,7 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public CommentDto createComment(Comment comment, int itemId, int userId) {
-        Booking booking = bookingRepository.findFirst1ByBookerIdAndItemIdOrderByEndAsc(userId, itemId);
+        Booking booking = bookingService.getBookingForComment(userId, itemId);
         if (booking != null) {
             if (booking.getEnd().isBefore(LocalDateTime.now())) {
                 if (comment.getText() != null) {

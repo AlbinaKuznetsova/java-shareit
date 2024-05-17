@@ -49,7 +49,7 @@ public class ItemController {
     }
 
     @PostMapping("/{itemId}/comment")
-    public ResponseEntity<CommentDto> createItem(@RequestBody Comment comment,
+    public ResponseEntity<CommentDto> createComment(@RequestBody Comment comment,
                                                  @PathVariable int itemId,
                                                  @RequestHeader("X-Sharer-User-Id") int userId) {
         return ResponseEntity.ok().body(itemService.createComment(comment, itemId, userId));
