@@ -7,6 +7,7 @@ import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
 
 import java.util.Collection;
+import java.util.List;
 
 public interface ItemService {
 
@@ -18,9 +19,11 @@ public interface ItemService {
 
     Item getItemForBooking(int itemId);
 
-    Collection<ItemDtoWithDates> getAllItems(int userId);
+    Collection<ItemDtoWithDates> getAllItems(int userId, Integer from, Integer size);
 
-    Collection<ItemDto> searchItems(String text);
+    Collection<ItemDto> searchItems(String text, Integer from, Integer size);
 
     CommentDto createComment(Comment comment, int itemId, int userId);
+
+    List<ItemDto> findByRequestId(int requestId);
 }

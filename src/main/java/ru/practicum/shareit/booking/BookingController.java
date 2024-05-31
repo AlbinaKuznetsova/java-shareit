@@ -35,13 +35,17 @@ public class BookingController {
 
     @GetMapping("/bookings")
     public ResponseEntity<Collection<BookingDtoOut>> getAllForBooker(@RequestHeader("X-Sharer-User-Id") int userId,
-                                                                     @RequestParam(defaultValue = "ALL", required = false) String state) {
-        return ResponseEntity.ok().body(bookingService.getAllForBooker(userId, state));
+                                                                     @RequestParam(defaultValue = "ALL", required = false) String state,
+                                                                     @RequestParam(required = false) Integer from,
+                                                                     @RequestParam(required = false) Integer size) {
+        return ResponseEntity.ok().body(bookingService.getAllForBooker(userId, state, from, size));
     }
 
     @GetMapping("/bookings/owner")
     public ResponseEntity<Collection<BookingDtoOut>> getAllForOwner(@RequestHeader("X-Sharer-User-Id") int userId,
-                                                                    @RequestParam(defaultValue = "ALL", required = false) String state) {
-        return ResponseEntity.ok().body(bookingService.getAllForOwner(userId, state));
+                                                                    @RequestParam(defaultValue = "ALL", required = false) String state,
+                                                                    @RequestParam(required = false) Integer from,
+                                                                    @RequestParam(required = false) Integer size) {
+        return ResponseEntity.ok().body(bookingService.getAllForOwner(userId, state, from, size));
     }
 }

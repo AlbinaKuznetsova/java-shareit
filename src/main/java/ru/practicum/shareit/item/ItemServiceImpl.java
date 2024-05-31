@@ -2,6 +2,8 @@ package ru.practicum.shareit.item;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.BookingService;
@@ -105,8 +107,16 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public Collection<ItemDtoWithDates> getAllItems(int userId) {
-        List<Item> items = itemRepository.findAllByOwnerId(userId);
+    public Collection<ItemDtoWithDates> getAllItems(int userId, Integer from, Integer size) {
+        List<Item> items;
+        if (from == null || size == null) {
+            items = itemRepository.findAllByOwnerId(userId);
+        } else {
+            validatePageParams(from, size);
+            int pageNumber = from / size;
+            Pageable pageable = PageRequest.of(pageNumber, size);
+            items = itemRepository.findAllByOwnerId(userId, pageable).toList();
+        }
         List<ItemDtoWithDates> itemDtoWithDatesList = new ArrayList<>();
         LocalDateTime now = LocalDateTime.now();
         for (Item item : items) {
@@ -122,10 +132,17 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public Collection<ItemDto> searchItems(String text) {
+    public Collection<ItemDto> searchItems(String text, Integer from, Integer size) {
         List<Item> resultItems = new ArrayList<>();
         if (!text.isBlank()) {
-            resultItems = itemRepository.search(text);
+            if (from == null || size == null) {
+                resultItems = itemRepository.search(text);
+            } else {
+                validatePageParams(from, size);
+                int pageNumber = from / size;
+                Pageable pageable = PageRequest.of(pageNumber, size);
+                resultItems = itemRepository.search(text, pageable).toList();
+            }
         }
         return itemMapper.toItemDto(resultItems);
     }
@@ -157,6 +174,11 @@ public class ItemServiceImpl implements ItemService {
         }
     }
 
+    @Override
+    public List<ItemDto> findByRequestId(int requestId) {
+        return itemMapper.toItemDto(itemRepository.findAllByRequestId(requestId));
+    }
+
     private void validateItem(ItemDto itemDto) {
         if (itemDto.getName() == null) {
             log.info("Название не может быть пустым");
@@ -175,6 +197,15 @@ public class ItemServiceImpl implements ItemService {
         if (itemDto.getAvailable() == null) {
             log.info("Статус не может быть пустым");
             throw new ValidationException("Статус не может быть пустым");
+        }
+    }
+
+    private void validatePageParams(Integer from, Integer size) {
+        if (from < 0) {
+            throw new ValidationException("Индекс элемента не может быть меньше 0");
+        }
+        if (size < 1) {
+            throw new ValidationException("Количество элементов не может быть меньше 1");
         }
     }
 }

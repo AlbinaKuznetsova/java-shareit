@@ -1,18 +1,17 @@
-package ru.practicum.shareit.item.dto;
+package ru.practicum.shareit.request.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.stereotype.Component;
+import java.time.LocalDateTime;
 
 @Component
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class ItemDto {
+public class ItemRequestDtoIn {
     private Integer id;
-    private String name;
     private String description;
-    private Boolean available;
-    private Integer requestId;
+    private LocalDateTime created = LocalDateTime.now();
 }

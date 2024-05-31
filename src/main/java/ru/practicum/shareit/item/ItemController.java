@@ -10,9 +10,6 @@ import ru.practicum.shareit.item.model.Comment;
 
 import java.util.Collection;
 
-/**
- * TODO Sprint add-controllers.
- */
 @RestController
 @RequestMapping("/items")
 @RequiredArgsConstructor
@@ -39,13 +36,17 @@ public class ItemController {
     }
 
     @GetMapping
-    public ResponseEntity<Collection<ItemDtoWithDates>> getAllItems(@RequestHeader("X-Sharer-User-Id") int userId) {
-        return ResponseEntity.ok().body(itemService.getAllItems(userId));
+    public ResponseEntity<Collection<ItemDtoWithDates>> getAllItems(@RequestHeader("X-Sharer-User-Id") int userId,
+                                                                    @RequestParam(required = false) Integer from,
+                                                                    @RequestParam(required = false) Integer size) {
+        return ResponseEntity.ok().body(itemService.getAllItems(userId, from, size));
     }
 
     @GetMapping("/search")
-    public ResponseEntity<Collection<ItemDto>> searchItems(@RequestParam(defaultValue = "") String text) {
-        return ResponseEntity.ok().body(itemService.searchItems(text));
+    public ResponseEntity<Collection<ItemDto>> searchItems(@RequestParam(defaultValue = "") String text,
+                                                           @RequestParam(required = false) Integer from,
+                                                           @RequestParam(required = false) Integer size) {
+        return ResponseEntity.ok().body(itemService.searchItems(text, from, size));
     }
 
     @PostMapping("/{itemId}/comment")

@@ -17,9 +17,9 @@ public interface BookingService {
 
     BookingDtoOut getBookingById(int userId, Integer bookingId);
 
-    Collection<BookingDtoOut> getAllForBooker(int userId, String state);
+    Collection<BookingDtoOut> getAllForBooker(int userId, String state, Integer from, Integer size);
 
-    Collection<BookingDtoOut> getAllForOwner(int userId, String state);
+    Collection<BookingDtoOut> getAllForOwner(int userId, String state, Integer from, Integer size);
 
     BookingDtoForItem getNextBooking(Integer itemId, LocalDateTime now, Status status);
 
