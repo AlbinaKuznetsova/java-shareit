@@ -36,7 +36,7 @@ public class ItemRequestRepositoryTest {
 
         user2 = new User();
         user2.setName("тестовый пользователь");
-        user2.setEmail("test@yandex.ru");
+        user2.setEmail("test2@yandex.ru");
         userRepository.save(user2);
 
         itemRequest = new ItemRequest();
