@@ -9,19 +9,22 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.request.ItemRequestRepository;
+import ru.practicum.shareit.request.model.ItemRequest;
 import ru.practicum.shareit.user.UserRepository;
 import ru.practicum.shareit.user.model.User;
 
 import javax.persistence.EntityManager;
+import java.time.LocalDateTime;
 import java.util.List;
 
-//Тесты для кастомных запросов
 @DataJpaTest
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 public class ItemRepositoryTest {
     private final EntityManager em;
     private final UserRepository userRepository;
     private final ItemRepository itemRepository;
+    private final ItemRequestRepository itemRequestRepository;
     User user;
     Item item;
     Item item2;
@@ -33,6 +36,12 @@ public class ItemRepositoryTest {
         user.setName("тестовый пользователь");
         user.setEmail("test@yandex.ru");
         userRepository.save(user);
+
+        ItemRequest itemRequest = new ItemRequest();
+        itemRequest.setDescription("Нужен стул");
+        itemRequest.setCreated(LocalDateTime.now());
+        itemRequest.setRequestor(user);
+        itemRequestRepository.save(itemRequest);
 
         item = new Item();
         item.setName("Робот пылесос");
@@ -46,6 +55,7 @@ public class ItemRepositoryTest {
         item2.setDescription("Робот мойщик окон");
         item2.setAvailable(true);
         item2.setOwner(user);
+        item2.setRequestId(1);
         itemRepository.save(item2);
 
         item3 = new Item();
@@ -73,5 +83,34 @@ public class ItemRepositoryTest {
         Assertions.assertEquals(1, items.size());
         Assertions.assertTrue(items.contains(item));
         Assertions.assertFalse(items.contains(item2));
+    }
+
+    @Test
+    void testFindAllByOwnerId() {
+        List<Item> items = itemRepository.findAllByOwnerId(user.getId());
+
+        Assertions.assertEquals(3, items.size());
+        Assertions.assertTrue(items.contains(item));
+        Assertions.assertTrue(items.contains(item2));
+        Assertions.assertTrue(items.contains(item3));
+    }
+
+    @Test
+    void testFindAllByOwnerIdPage() {
+        Pageable pageable = PageRequest.of(0, 2);
+        List<Item> items = itemRepository.findAllByOwnerId(user.getId(), pageable).toList();
+
+        Assertions.assertEquals(2, items.size());
+        Assertions.assertTrue(items.contains(item));
+        Assertions.assertTrue(items.contains(item2));
+        Assertions.assertFalse(items.contains(item3));
+    }
+
+    @Test
+    void testFindAllByRequestId() {
+        List<Item> items = itemRepository.findAllByRequestId(1);
+
+        Assertions.assertEquals(1, items.size());
+        Assertions.assertTrue(items.contains(item2));
     }
 }
