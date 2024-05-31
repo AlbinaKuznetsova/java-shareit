@@ -12,6 +12,8 @@ import ru.practicum.shareit.booking.dto.BookingDtoIn;
 import ru.practicum.shareit.booking.dto.BookingDtoOut;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.Status;
+import ru.practicum.shareit.exceptions.ObjectNotFoundException;
+import ru.practicum.shareit.exceptions.ValidationException;
 import ru.practicum.shareit.item.ItemMapper;
 import ru.practicum.shareit.item.ItemService;
 import ru.practicum.shareit.item.dto.ItemDto;
@@ -80,6 +82,23 @@ public class BookingServiceIntegrationTest {
         assertThat(bookingFromDB.getStart(), equalTo(LocalDateTime.of(2024, 6, 20, 0, 0)));
         assertThat(bookingFromDB.getEnd(), equalTo(LocalDateTime.of(2024, 6, 21, 0, 0)));
         assertThat(bookingFromDB.getStatus(), equalTo(Status.WAITING));
+
+
+        BookingDtoIn bookingDtoIn2 = new BookingDtoIn();
+        bookingDtoIn2.setStart(LocalDateTime.of(2024, 6, 20, 0, 0));
+        bookingDtoIn2.setEnd(LocalDateTime.of(2024, 6, 21, 0, 0));
+        Assertions.assertThrows(ValidationException.class,
+                () -> bookingService.createBooking(bookingDtoIn2, user2.getId()));
+
+        bookingDtoIn2.setItemId(itemDto.getId());
+        bookingDtoIn2.setEnd(LocalDateTime.of(2024, 6, 20, 0, 0));
+        Assertions.assertThrows(ValidationException.class,
+                () -> bookingService.createBooking(bookingDtoIn2, user2.getId()));
+
+        bookingDtoIn2.setStart(LocalDateTime.of(2024, 6, 20, 0, 0));
+        Assertions.assertThrows(ValidationException.class,
+                () -> bookingService.createBooking(bookingDtoIn2, user2.getId()));
+
 
     }
 
@@ -152,6 +171,26 @@ public class BookingServiceIntegrationTest {
         bookings = bookingService.getAllForBooker(user2.getId(), "ALL", 0, 1);
         assertThat(bookings.size(), equalTo(1));
         Assertions.assertTrue(bookings.contains(bookingDtoOut1));
+
+        bookings = bookingService.getAllForBooker(user2.getId(), "CURRENT", 0, 1);
+        assertThat(bookings.size(), equalTo(0));
+
+        bookings = bookingService.getAllForBooker(user2.getId(), "PAST", 0, 1);
+        assertThat(bookings.size(), equalTo(0));
+
+        bookings = bookingService.getAllForBooker(user2.getId(), "FUTURE", 0, 1);
+        assertThat(bookings.size(), equalTo(1));
+        Assertions.assertTrue(bookings.contains(bookingDtoOut1));
+
+        bookings = bookingService.getAllForBooker(user2.getId(), "WAITING", 0, 1);
+        assertThat(bookings.size(), equalTo(1));
+        Assertions.assertTrue(bookings.contains(bookingDtoOut2));
+
+        Assertions.assertThrows(ValidationException.class,
+                () -> bookingService.getAllForBooker(user2.getId(), "NO_STATE", 0, 1));
+
+        Assertions.assertThrows(ObjectNotFoundException.class,
+                () -> bookingService.getAllForBooker(user.getId() + 1000, "ALL", 0, 1));
     }
 
     @Test
@@ -192,6 +231,27 @@ public class BookingServiceIntegrationTest {
         bookings = bookingService.getAllForOwner(user.getId(), "ALL", 0, 1);
         assertThat(bookings.size(), equalTo(1));
         Assertions.assertTrue(bookings.contains(bookingDtoOut1));
+
+        bookings = bookingService.getAllForOwner(user.getId(), "CURRENT", 0, 1);
+        assertThat(bookings.size(), equalTo(0));
+
+        bookings = bookingService.getAllForOwner(user.getId(), "PAST", 0, 1);
+        assertThat(bookings.size(), equalTo(0));
+
+        bookings = bookingService.getAllForOwner(user.getId(), "FUTURE", 0, 1);
+        assertThat(bookings.size(), equalTo(1));
+        Assertions.assertTrue(bookings.contains(bookingDtoOut1));
+
+        bookings = bookingService.getAllForOwner(user.getId(), "WAITING", 0, 1);
+        assertThat(bookings.size(), equalTo(1));
+        Assertions.assertTrue(bookings.contains(bookingDtoOut2));
+
+        Assertions.assertThrows(ValidationException.class,
+                () -> bookingService.getAllForOwner(user.getId(), "NO_STATE", 0, 1));
+
+        Assertions.assertThrows(ObjectNotFoundException.class,
+                () -> bookingService.getAllForOwner(user.getId() + 1000, "ALL", 0, 1));
+
     }
 
     @Test
