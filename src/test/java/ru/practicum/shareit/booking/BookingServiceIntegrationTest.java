@@ -18,8 +18,10 @@ import ru.practicum.shareit.item.ItemMapper;
 import ru.practicum.shareit.item.ItemService;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.user.UserMapper;
+import ru.practicum.shareit.user.UserMapperImpl;
 import ru.practicum.shareit.user.UserService;
-import ru.practicum.shareit.user.model.User;
+import ru.practicum.shareit.user.dto.UserDto;
 
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
@@ -40,26 +42,28 @@ public class BookingServiceIntegrationTest {
     private final ItemService itemService;
     private final UserService userService;
     private final ItemMapper itemMapper;
-    User user;
-    User user2;
+    UserDto user;
+    UserDto user2;
     Item item;
     BookingDtoIn bookingDtoIn;
     ItemDto itemDto;
+    UserMapper userMapper;
 
     @BeforeEach
     void beforeEach() {
-        user = new User();
+        userMapper = new UserMapperImpl();
+        user = new UserDto();
         user.setName("тестовый пользователь");
         user.setEmail("test@yandex.ru");
-        user2 = new User();
+        user2 = new UserDto();
         user2.setName("www");
         user2.setEmail("www@yandex.ru");
         item = new Item();
         item.setName("вещь");
         item.setDescription("описание");
         item.setAvailable(true);
-        userService.createUser(user);
-        userService.createUser(user2);
+        user = userService.createUser(user);
+        user2 = userService.createUser(user2);
         itemDto = itemService.createItem(itemMapper.toItemDto(item), user.getId());
         item.setId(itemDto.getId());
 
@@ -77,8 +81,8 @@ public class BookingServiceIntegrationTest {
         Booking bookingFromDB = query.setParameter("id", bookingDtoOut.getId()).getSingleResult();
 
         assertThat(bookingFromDB.getId(), equalTo(bookingDtoOut.getId()));
-        assertThat(bookingFromDB.getItem(), equalTo(itemMapper.toItem(itemDto, user)));
-        assertThat(bookingFromDB.getBooker(), equalTo(user2));
+        assertThat(bookingFromDB.getItem().getId(), equalTo(itemDto.getId()));
+        assertThat(bookingFromDB.getBooker(), equalTo(userMapper.toUser(user2)));
         assertThat(bookingFromDB.getStart(), equalTo(LocalDateTime.of(2024, 6, 20, 0, 0)));
         assertThat(bookingFromDB.getEnd(), equalTo(LocalDateTime.of(2024, 6, 21, 0, 0)));
         assertThat(bookingFromDB.getStatus(), equalTo(Status.WAITING));
@@ -91,14 +95,20 @@ public class BookingServiceIntegrationTest {
                 () -> bookingService.createBooking(bookingDtoIn2, user2.getId()));
 
         bookingDtoIn2.setItemId(itemDto.getId());
+        bookingDtoIn2.setStart(null);
         bookingDtoIn2.setEnd(LocalDateTime.of(2024, 6, 20, 0, 0));
         Assertions.assertThrows(ValidationException.class,
                 () -> bookingService.createBooking(bookingDtoIn2, user2.getId()));
 
+        bookingDtoIn2.setEnd(null);
         bookingDtoIn2.setStart(LocalDateTime.of(2024, 6, 20, 0, 0));
         Assertions.assertThrows(ValidationException.class,
                 () -> bookingService.createBooking(bookingDtoIn2, user2.getId()));
 
+        bookingDtoIn2.setStart(LocalDateTime.of(2024, 6, 25, 0, 0));
+        bookingDtoIn2.setEnd(LocalDateTime.of(2024, 6, 21, 0, 0));
+        Assertions.assertThrows(ValidationException.class,
+                () -> bookingService.createBooking(bookingDtoIn2, user2.getId()));
 
     }
 
@@ -112,7 +122,7 @@ public class BookingServiceIntegrationTest {
         Booking bookingFromDB = query.setParameter("id", bookingDtoOut.getId()).getSingleResult();
 
         assertThat(bookingFromDB.getId(), equalTo(bookingDtoOut.getId()));
-        assertThat(bookingFromDB.getBooker(), equalTo(user2));
+        assertThat(bookingFromDB.getBooker(), equalTo(userMapper.toUser(user2)));
         assertThat(bookingFromDB.getStart(), equalTo(LocalDateTime.of(2024, 6, 20, 0, 0)));
         assertThat(bookingFromDB.getEnd(), equalTo(LocalDateTime.of(2024, 6, 21, 0, 0)));
         assertThat(bookingFromDB.getStatus(), equalTo(Status.APPROVED));
@@ -127,7 +137,7 @@ public class BookingServiceIntegrationTest {
         Booking bookingFromDB = query.setParameter("id", bookingDtoOut.getId()).getSingleResult();
 
         assertThat(bookingFromDB.getId(), equalTo(bookingDtoOut2.getId()));
-        assertThat(bookingFromDB.getBooker(), equalTo(bookingDtoOut2.getBooker()));
+        assertThat(bookingFromDB.getBooker(), equalTo(userMapper.toUser(bookingDtoOut2.getBooker())));
         assertThat(bookingFromDB.getStart(), equalTo(bookingDtoOut2.getStart()));
         assertThat(bookingFromDB.getEnd(), equalTo(bookingDtoOut2.getEnd()));
         assertThat(bookingFromDB.getStatus(), equalTo(bookingDtoOut2.getStatus()));
@@ -306,8 +316,9 @@ public class BookingServiceIntegrationTest {
         assertThat(booking.getId(), equalTo(bookingDtoOut.getId()));
         assertThat(booking.getStart(), equalTo(bookingDtoOut.getStart()));
         assertThat(booking.getEnd(), equalTo(bookingDtoOut.getEnd()));
-        assertThat(booking.getItem(), equalTo(bookingDtoOut.getItem()));
-        assertThat(booking.getBooker(), equalTo(bookingDtoOut.getBooker()));
+        assertThat(booking.getItem().getId(), equalTo(bookingDtoOut.getItem().getId()));
+        assertThat(booking.getBooker(), equalTo(userMapper.toUser(bookingDtoOut.getBooker())));
+
     }
 
 }

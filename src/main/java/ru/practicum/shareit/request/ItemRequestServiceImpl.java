@@ -14,7 +14,7 @@ import ru.practicum.shareit.request.dto.ItemRequestDtoIn;
 import ru.practicum.shareit.request.dto.ItemRequestDtoOut;
 import ru.practicum.shareit.request.model.ItemRequest;
 import ru.practicum.shareit.user.UserService;
-import ru.practicum.shareit.user.model.User;
+import ru.practicum.shareit.user.dto.UserDto;
 
 import java.util.List;
 import java.util.Optional;
@@ -32,7 +32,7 @@ public class ItemRequestServiceImpl implements ItemRequestService {
     @Override
     public ItemRequestDtoOut createItemRequest(ItemRequestDtoIn itemRequestDtoIn, int userId) {
         validateRequest(itemRequestDtoIn);
-        User user = userService.getUserById(userId);
+        UserDto user = userService.getUserById(userId);
         ItemRequest itemRequest = itemRequestMapper.toItemRequest(itemRequestDtoIn, user);
         return itemRequestMapper.toItemRequestDtoOut(itemRequestRepository.save(itemRequest));
     }

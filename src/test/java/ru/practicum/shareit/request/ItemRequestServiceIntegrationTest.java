@@ -7,11 +7,14 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
+import ru.practicum.shareit.exceptions.ValidationException;
 import ru.practicum.shareit.request.dto.ItemRequestDtoIn;
 import ru.practicum.shareit.request.dto.ItemRequestDtoOut;
 import ru.practicum.shareit.request.model.ItemRequest;
+import ru.practicum.shareit.user.UserMapper;
+import ru.practicum.shareit.user.UserMapperImpl;
 import ru.practicum.shareit.user.UserService;
-import ru.practicum.shareit.user.model.User;
+import ru.practicum.shareit.user.dto.UserDto;
 
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
@@ -32,22 +35,24 @@ public class ItemRequestServiceIntegrationTest {
     private final UserService userService;
     private final ItemRequestService itemRequestService;
 
-    User user;
-    User user2;
+    UserDto user;
+    UserDto user2;
     ItemRequestDtoIn itemRequestDtoIn;
     ItemRequestDtoIn itemRequestDtoIn2;
+    UserMapper userMapper;
 
     @BeforeEach
     void beforeEach() {
-        user = new User();
+        userMapper = new UserMapperImpl();
+        user = new UserDto();
         user.setName("тестовый пользователь");
         user.setEmail("test@yandex.ru");
-        user2 = new User();
+        user2 = new UserDto();
         user2.setName("www");
         user2.setEmail("www@yandex.ru");
 
-        userService.createUser(user);
-        userService.createUser(user2);
+        user = userService.createUser(user);
+        user2 = userService.createUser(user2);
 
         itemRequestDtoIn = new ItemRequestDtoIn();
         itemRequestDtoIn.setDescription("нужен пылесос");
@@ -66,7 +71,10 @@ public class ItemRequestServiceIntegrationTest {
         assertThat(itemRequestFromDB.getId(), notNullValue());
         assertThat(itemRequestFromDB.getDescription(), equalTo(itemRequestDtoIn.getDescription()));
         assertThat(itemRequestFromDB.getCreated(), notNullValue());
-        assertThat(itemRequestFromDB.getRequestor(), equalTo(user));
+        assertThat(itemRequestFromDB.getRequestor(), equalTo(userMapper.toUser(user)));
+
+        itemRequestDtoIn.setDescription("");
+        Assertions.assertThrows(ValidationException.class, () -> itemRequestService.createItemRequest(itemRequestDtoIn, user.getId()));
     }
 
     @Test
@@ -102,6 +110,9 @@ public class ItemRequestServiceIntegrationTest {
 
         requests = itemRequestService.getAllRequests(user.getId(), 0, 1);
         assertThat(requests.size(), equalTo(1));
+
+        Assertions.assertThrows(ValidationException.class, () -> itemRequestService.getAllRequests(user.getId(), -1, 1));
+        Assertions.assertThrows(ValidationException.class, () -> itemRequestService.getAllRequests(user.getId(), 0, -1));
     }
 
     @Test

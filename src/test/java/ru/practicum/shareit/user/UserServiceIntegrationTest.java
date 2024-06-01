@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
+import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.model.User;
 
 import javax.persistence.EntityManager;
@@ -27,7 +28,7 @@ public class UserServiceIntegrationTest {
 
     @Test
     void testCreateUser() {
-        User user = new User();
+        UserDto user = new UserDto();
         user.setName("тестовый пользователь");
         user.setEmail("test@yandex.ru");
         userService.createUser(user);
@@ -41,11 +42,11 @@ public class UserServiceIntegrationTest {
 
     @Test
     void testGetUserById() {
-        User user = new User();
+        UserDto user = new UserDto();
         user.setName("тестовый пользователь");
         user.setEmail("test@yandex.ru");
-        User userFromDB1 = userService.createUser(user);
-        User userFromDB2 = userService.getUserById(userFromDB1.getId());
+        UserDto userFromDB1 = userService.createUser(user);
+        UserDto userFromDB2 = userService.getUserById(userFromDB1.getId());
 
         TypedQuery<User> query = em.createQuery("Select u from User u where u.id = :id", User.class);
         User userFromDB = query.setParameter("id", userFromDB1.getId()).getSingleResult();
@@ -56,14 +57,14 @@ public class UserServiceIntegrationTest {
 
     @Test
     void testUpdateUser() {
-        User user = new User();
+        UserDto user = new UserDto();
         user.setName("тестовый пользователь");
         user.setEmail("test@yandex.ru");
-        User userFromDB1 = userService.createUser(user);
-        User user2 = new User();
+        UserDto userFromDB1 = userService.createUser(user);
+        UserDto user2 = new UserDto();
         user2.setName("www");
         user2.setEmail("www@yandex.ru");
-        userService.updateUser(user.getId(), user2);
+        userService.updateUser(userFromDB1.getId(), user2);
 
         TypedQuery<User> query = em.createQuery("Select u from User u where u.id = :id", User.class);
         User userFromDB = query.setParameter("id", userFromDB1.getId()).getSingleResult();
@@ -74,16 +75,16 @@ public class UserServiceIntegrationTest {
 
     @Test
     void testGetAllUsers() {
-        User user = new User();
+        UserDto user = new UserDto();
         user.setName("тестовый пользователь");
         user.setEmail("test@yandex.ru");
-        userService.createUser(user);
-        User user2 = new User();
+        user = userService.createUser(user);
+        UserDto user2 = new UserDto();
         user2.setName("www");
         user2.setEmail("www@yandex.ru");
-        userService.createUser(user2);
+        user2 = userService.createUser(user2);
 
-        Collection<User> users = userService.getAllUsers();
+        Collection<UserDto> users = userService.getAllUsers();
         Assertions.assertEquals(2, users.size());
         Assertions.assertTrue(users.contains(user));
         Assertions.assertTrue(users.contains(user2));
@@ -91,12 +92,12 @@ public class UserServiceIntegrationTest {
 
     @Test
     void testDeleteUser() {
-        User user = new User();
+        UserDto user = new UserDto();
         user.setName("тестовый пользователь");
         user.setEmail("test@yandex.ru");
-        userService.createUser(user);
+        user = userService.createUser(user);
 
-        Collection<User> users = userService.getAllUsers();
+        Collection<UserDto> users = userService.getAllUsers();
         Assertions.assertEquals(1, users.size());
 
         userService.deleteUser(user.getId());

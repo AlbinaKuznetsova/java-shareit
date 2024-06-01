@@ -10,12 +10,18 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.ItemDtoWithDates;
 import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.request.ItemRequestMapper;
+import ru.practicum.shareit.request.ItemRequestMapperImpl;
+import ru.practicum.shareit.request.ItemRequestService;
+import ru.practicum.shareit.request.dto.ItemRequestDtoIn;
+import ru.practicum.shareit.request.dto.ItemRequestDtoOut;
 import ru.practicum.shareit.user.UserService;
-import ru.practicum.shareit.user.model.User;
+import ru.practicum.shareit.user.dto.UserDto;
 
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 
@@ -32,18 +38,19 @@ public class ItemServiceIntegrationTest {
     private final ItemService itemService;
     private final UserService userService;
     private final ItemMapper itemMapper;
-    User user;
-    User user2;
+    private final ItemRequestService itemRequestService;
+    UserDto user;
+    UserDto user2;
     Item item;
     Item item2;
     ItemDto itemDto;
 
     @BeforeEach
     void beforeEach() {
-        user = new User();
+        user = new UserDto();
         user.setName("тестовый пользователь");
         user.setEmail("test@yandex.ru");
-        user2 = new User();
+        user2 = new UserDto();
         user2.setName("www");
         user2.setEmail("www@yandex.ru");
 
@@ -56,8 +63,8 @@ public class ItemServiceIntegrationTest {
         item2.setDescription("описание2");
         item2.setAvailable(true);
 
-        userService.createUser(user);
-        userService.createUser(user2);
+        user = userService.createUser(user);
+        user2 = userService.createUser(user2);
     }
 
     @Test
@@ -146,9 +153,15 @@ public class ItemServiceIntegrationTest {
 
     @Test
     void testFindByRequestId() {
-        item.setRequestId(1);
-        itemDto = itemService.createItem(itemMapper.toItemDto(item), user.getId());
-        List<ItemDto> items = itemService.findByRequestId(1);
+        ItemRequestMapper itemRequestMapper = new ItemRequestMapperImpl();
+        ItemRequestDtoIn itemRequest = new ItemRequestDtoIn();
+        itemRequest.setDescription("Нужен стул");
+        itemRequest.setCreated(LocalDateTime.now());
+        ItemRequestDtoOut itemRequestDtoOut = itemRequestService.createItemRequest(itemRequest, user2.getId());
+        itemDto = itemMapper.toItemDto(item);
+        itemDto.setRequestId(itemRequestDtoOut.getId());
+        itemDto = itemService.createItem(itemDto, user.getId());
+        List<ItemDto> items = itemService.findByRequestId(itemRequestDtoOut.getId());
 
         assertThat(items.size(), equalTo(1));
         Assertions.assertTrue(items.contains(itemDto));

@@ -14,7 +14,7 @@ import ru.practicum.shareit.request.dto.ItemRequestDtoIn;
 import ru.practicum.shareit.request.dto.ItemRequestDtoOut;
 import ru.practicum.shareit.request.model.ItemRequest;
 import ru.practicum.shareit.user.UserService;
-import ru.practicum.shareit.user.model.User;
+import ru.practicum.shareit.user.dto.UserDto;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -33,7 +33,7 @@ public class ItemRequestServiceTest {
     @Mock
     ItemService itemService;
     ItemRequestService itemRequestService;
-    User user;
+    UserDto user;
     ItemRequestDtoIn itemRequestDtoIn;
     ItemRequest itemRequest;
 
@@ -41,7 +41,7 @@ public class ItemRequestServiceTest {
     void beforeEach() {
         itemRequestMapper = new ItemRequestMapperImpl();
         itemRequestService = new ItemRequestServiceImpl(itemRequestRepository, itemRequestMapper, userService, itemService);
-        user = new User();
+        user = new UserDto();
         user.setId(1);
         user.setName("тестовый пользователь");
         user.setEmail("test@yandex.ru");

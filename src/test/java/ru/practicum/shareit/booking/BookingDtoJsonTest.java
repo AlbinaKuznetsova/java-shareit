@@ -10,7 +10,9 @@ import ru.practicum.shareit.booking.dto.BookingDtoOut;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.Status;
 import ru.practicum.shareit.item.model.Item;
-import ru.practicum.shareit.user.model.User;
+import ru.practicum.shareit.user.UserMapper;
+import ru.practicum.shareit.user.UserMapperImpl;
+import ru.practicum.shareit.user.dto.UserDto;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -24,12 +26,13 @@ public class BookingDtoJsonTest {
     @Test
     void testBookingDto() throws Exception {
         BookingMapper bookingMapper = new BookingMapperImpl();
-        User user = new User();
+        UserMapper userMapper = new UserMapperImpl();
+        UserDto user = new UserDto();
         user.setId(1);
         user.setName("тестовый пользователь");
         user.setEmail("test@yandex.ru");
 
-        Item item = new Item(1, "вещь", "описание", true, user, null);
+        Item item = new Item(1, "вещь", "описание", true, userMapper.toUser(user), null);
 
         BookingDtoIn bookingDtoIn = new BookingDtoIn();
         bookingDtoIn.setId(1);

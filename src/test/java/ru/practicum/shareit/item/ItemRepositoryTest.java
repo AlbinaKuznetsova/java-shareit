@@ -29,19 +29,20 @@ public class ItemRepositoryTest {
     Item item;
     Item item2;
     Item item3;
+    ItemRequest itemRequest;
 
     @BeforeEach
     void beforeEach() {
         user = new User();
         user.setName("тестовый пользователь");
         user.setEmail("test@yandex.ru");
-        userRepository.save(user);
+        user = userRepository.save(user);
 
-        ItemRequest itemRequest = new ItemRequest();
+        itemRequest = new ItemRequest();
         itemRequest.setDescription("Нужен стул");
         itemRequest.setCreated(LocalDateTime.now());
         itemRequest.setRequestor(user);
-        itemRequestRepository.save(itemRequest);
+        itemRequest = itemRequestRepository.save(itemRequest);
 
         item = new Item();
         item.setName("Робот пылесос");
@@ -55,7 +56,7 @@ public class ItemRepositoryTest {
         item2.setDescription("Робот мойщик окон");
         item2.setAvailable(true);
         item2.setOwner(user);
-        item2.setRequestId(1);
+        item2.setRequest(itemRequest);
         itemRepository.save(item2);
 
         item3 = new Item();
@@ -108,7 +109,7 @@ public class ItemRepositoryTest {
 
     @Test
     void testFindAllByRequestId() {
-        List<Item> items = itemRepository.findAllByRequestId(1);
+        List<Item> items = itemRepository.findAllByRequestId(itemRequest.getId());
 
         Assertions.assertEquals(1, items.size());
         Assertions.assertTrue(items.contains(item2));

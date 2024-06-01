@@ -13,7 +13,9 @@ import ru.practicum.shareit.booking.dto.BookingDtoOut;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.Status;
 import ru.practicum.shareit.item.model.Item;
-import ru.practicum.shareit.user.model.User;
+import ru.practicum.shareit.user.UserMapper;
+import ru.practicum.shareit.user.UserMapperImpl;
+import ru.practicum.shareit.user.dto.UserDto;
 
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
@@ -38,8 +40,8 @@ public class BookingServiceControllerTest {
     BookingService bookingService;
     @Autowired
     private MockMvc mvc;
-    private User user;
-    private User user2;
+    private UserDto user;
+    private UserDto user2;
     private BookingMapper bookingMapper;
     Item item;
     Booking booking;
@@ -49,13 +51,14 @@ public class BookingServiceControllerTest {
     @BeforeEach
     void beforeEach() {
         bookingMapper = new BookingMapperImpl();
+        UserMapper userMapper = new UserMapperImpl();
 
-        user = new User();
+        user = new UserDto();
         user.setId(1);
         user.setName("тестовый пользователь");
         user.setEmail("test@yandex.ru");
 
-        user2 = new User();
+        user2 = new UserDto();
         user2.setId(2);
         user2.setName("www");
         user2.setEmail("www@yandex.ru");
@@ -65,7 +68,7 @@ public class BookingServiceControllerTest {
         item.setName("стол");
         item.setDescription("описание");
         item.setAvailable(true);
-        item.setOwner(user);
+        item.setOwner(userMapper.toUser(user));
 
         bookingDtoIn = new BookingDtoIn(1,
                 LocalDateTime.of(2024, 6, 20, 10, 10, 10),

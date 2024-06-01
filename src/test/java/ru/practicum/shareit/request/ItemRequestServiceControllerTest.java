@@ -10,7 +10,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import ru.practicum.shareit.request.dto.ItemRequestDtoIn;
 import ru.practicum.shareit.request.dto.ItemRequestDtoOut;
-import ru.practicum.shareit.user.model.User;
+import ru.practicum.shareit.user.dto.UserDto;
 
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
@@ -37,8 +37,8 @@ public class ItemRequestServiceControllerTest {
     private MockMvc mvc;
     private ItemRequestMapper itemRequestMapper;
 
-    private User user;
-    private User user2;
+    private UserDto user;
+    private UserDto user2;
     private ItemRequestDtoIn itemRequestDtoIn;
     private ItemRequestDtoOut itemRequestDtoOut;
     private ItemRequestDtoIn itemRequestDtoIn2;
@@ -48,12 +48,12 @@ public class ItemRequestServiceControllerTest {
     void beforeEach() {
         itemRequestMapper = new ItemRequestMapperImpl();
 
-        user = new User();
+        user = new UserDto();
         user.setId(1);
         user.setName("тестовый пользователь");
         user.setEmail("test@yandex.ru");
 
-        user2 = new User();
+        user2 = new UserDto();
         user2.setId(2);
         user2.setName("www");
         user2.setEmail("www@yandex.ru");

@@ -103,9 +103,7 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public Collection<BookingDtoOut> getAllForBooker(int userId, String state, Integer from, Integer size) {
-        if (userService.getUserById(userId) == null) {
-            throw new ObjectNotFoundException("Пользователь не найден");
-        }
+        userService.getUserById(userId);
         LocalDateTime now = LocalDateTime.now();
         if (from == null || size == null) {
             if (state.equals(State.ALL.toString())) {
@@ -150,9 +148,7 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public Collection<BookingDtoOut> getAllForOwner(int userId, String state, Integer from, Integer size) {
         LocalDateTime now = LocalDateTime.now();
-        if (userService.getUserById(userId) == null) {
-            throw new ObjectNotFoundException("Пользователь не найден");
-        }
+        userService.getUserById(userId);
         if (from == null || size == null) {
             if (state.equals(State.ALL.toString())) {
                 return bookingMapper.toBookingDtoOut(bookingRepository.findAllByItemOwnerIdOrderByEndDesc(userId));
@@ -205,7 +201,8 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public Booking getBookingForComment(Integer userId, Integer itemId) {
-        return bookingRepository.findFirst1ByBookerIdAndItemIdOrderByEndAsc(userId, itemId);
+        Optional<Booking> booking = bookingRepository.findFirst1ByBookerIdAndItemIdOrderByEndAsc(userId, itemId);
+        return booking.orElse(null);
     }
 
     private void validateBooking(BookingDtoIn bookingDtoIn) {

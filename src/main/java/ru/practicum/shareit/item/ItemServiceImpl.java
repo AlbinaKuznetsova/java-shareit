@@ -41,6 +41,9 @@ public class ItemServiceImpl implements ItemService {
     public ItemDto createItem(ItemDto itemDto, int userId) {
         validateItem(itemDto);
         Item item = itemMapper.toItem(itemDto, userService.getUserById(userId));
+        if (item.getRequest().getId() == null) {
+            item.setRequest(null);
+        }
         return itemMapper.toItemDto(itemRepository.save(item));
     }
 

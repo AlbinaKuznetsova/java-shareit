@@ -17,8 +17,13 @@ import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.ItemDtoWithDates;
 import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.request.ItemRequestMapper;
+import ru.practicum.shareit.request.ItemRequestMapperImpl;
+import ru.practicum.shareit.request.ItemRequestService;
+import ru.practicum.shareit.user.UserMapper;
+import ru.practicum.shareit.user.UserMapperImpl;
 import ru.practicum.shareit.user.UserService;
-import ru.practicum.shareit.user.model.User;
+import ru.practicum.shareit.user.dto.UserDto;
 
 import java.time.LocalDateTime;
 import java.util.Collection;
@@ -39,24 +44,30 @@ public class ItemServiceTest {
     BookingService bookingService;
     @Mock
     CommentRepository commentRepository;
+    @Mock
+    ItemRequestService itemRequestService;
+    ItemRequestMapper itemRequestMapper;
     CommentMapper commentMapper;
     ItemService itemService;
-    User user;
-    User user2;
+    UserDto user;
+    UserDto user2;
     ItemDto itemDto;
     Item item;
+    UserMapper userMapper;
 
     @BeforeEach
     void beforeEach() {
         itemMapper = new ItemMapperImpl();
         commentMapper = new CommentMapperImpl();
+        userMapper = new UserMapperImpl();
+        itemRequestMapper = new ItemRequestMapperImpl();
         itemService = new ItemServiceImpl(itemRepository, userService, itemMapper, bookingService, commentRepository, commentMapper);
 
-        user = new User();
+        user = new UserDto();
         user.setId(1);
         user.setName("тестовый пользователь");
         user.setEmail("test@yandex.ru");
-        user2 = new User();
+        user2 = new UserDto();
         user2.setId(2);
         user2.setName("www");
         user2.setEmail("www@yandex.ru");
@@ -71,7 +82,7 @@ public class ItemServiceTest {
         ItemDto newItemDto = itemService.createItem(itemDto, user.getId());
 
         Mockito.verify(userService, Mockito.times(1)).getUserById(user.getId());
-        Mockito.verify(itemRepository, Mockito.times(1)).save(item);
+        Mockito.verify(itemRepository, Mockito.times(1)).save(any(Item.class));
         Assertions.assertEquals(itemDto, newItemDto);
 
         // Пробуем создать вещь с пустыми полями
@@ -130,7 +141,7 @@ public class ItemServiceTest {
             }
         });
 
-        Comment comment = new Comment(1, "comment", item, user2, LocalDateTime.now());
+        Comment comment = new Comment(1, "comment", item, userMapper.toUser(user2), LocalDateTime.now());
         Mockito.when(bookingService.getNextBooking(anyInt(), any(), any())).thenReturn(null);
         Mockito.when(bookingService.getLastBooking(anyInt(), any(), any())).thenReturn(null);
         Mockito.when(commentRepository.findAllByItemId(anyInt())).thenReturn(List.of(comment));
@@ -183,7 +194,7 @@ public class ItemServiceTest {
             }
         });
 
-        Comment comment = new Comment(1, "comment", item, user2, LocalDateTime.now());
+        Comment comment = new Comment(1, "comment", item, userMapper.toUser(user2), LocalDateTime.now());
         Mockito.when(bookingService.getNextBooking(anyInt(), any(), any())).thenReturn(null);
         Mockito.when(bookingService.getLastBooking(anyInt(), any(), any())).thenReturn(null);
         Mockito.when(commentRepository.findAllByItemId(anyInt())).thenReturn(List.of(comment));
@@ -225,7 +236,7 @@ public class ItemServiceTest {
         booking.setId(1);
         booking.setStatus(Status.APPROVED);
         booking.setItem(item);
-        booking.setBooker(user2);
+        booking.setBooker(userMapper.toUser(user2));
         booking.setStart(LocalDateTime.of(2024, 5, 10, 0, 0));
         booking.setEnd(LocalDateTime.of(2024, 5, 12, 0, 0));
         Mockito.when(bookingService.getBookingForComment(anyInt(), anyInt())).thenAnswer(invocationOnMock -> {
@@ -237,7 +248,7 @@ public class ItemServiceTest {
                 return null;
             }
         });
-        Comment comment = new Comment(1, "comment", item, user2, LocalDateTime.now());
+        Comment comment = new Comment(1, "comment", item, userMapper.toUser(user2), LocalDateTime.now());
         Mockito.when(commentRepository.save(any())).thenReturn(comment);
 
         CommentDto commentDto = itemService.createComment(comment, item.getId(), user2.getId());

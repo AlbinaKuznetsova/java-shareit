@@ -8,7 +8,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
-import ru.practicum.shareit.user.model.User;
+import ru.practicum.shareit.user.dto.UserDto;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -35,16 +35,16 @@ public class UserControllerTest {
     UserService userService;
     @Autowired
     private MockMvc mvc;
-    private User user;
-    private User user2;
+    private UserDto user;
+    private UserDto user2;
 
     @BeforeEach
     void beforeEach() {
-        user = new User();
+        user = new UserDto();
         user.setId(1);
         user.setName("тестовый пользователь");
         user.setEmail("test@yandex.ru");
-        user2 = new User();
+        user2 = new UserDto();
         user2.setId(2);
         user2.setName("www");
         user2.setEmail("www@yandex.ru");

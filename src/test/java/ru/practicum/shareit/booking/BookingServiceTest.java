@@ -16,8 +16,10 @@ import ru.practicum.shareit.exceptions.ObjectNotFoundException;
 import ru.practicum.shareit.exceptions.ValidationException;
 import ru.practicum.shareit.item.ItemService;
 import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.user.UserMapper;
+import ru.practicum.shareit.user.UserMapperImpl;
 import ru.practicum.shareit.user.UserService;
-import ru.practicum.shareit.user.model.User;
+import ru.practicum.shareit.user.dto.UserDto;
 
 import java.time.LocalDateTime;
 import java.util.Collection;
@@ -38,8 +40,8 @@ public class BookingServiceTest {
     UserService userService;
     BookingService bookingService;
 
-    User user;
-    User user2;
+    UserDto user;
+    UserDto user2;
     Item item;
     BookingDtoIn bookingDtoIn;
     Booking booking;
@@ -49,15 +51,16 @@ public class BookingServiceTest {
         bookingMapper = new BookingMapperImpl();
         bookingService = new BookingServiceImpl(bookingRepository, bookingMapper, userService, itemService);
 
-        user = new User();
+        user = new UserDto();
         user.setId(1);
         user.setName("тестовый пользователь");
         user.setEmail("test@yandex.ru");
-        user2 = new User();
+        user2 = new UserDto();
         user2.setId(2);
         user2.setName("www");
         user2.setEmail("www@yandex.ru");
-        item = new Item(1, "вещь", "описание", true, user, null);
+        UserMapper userMapper = new UserMapperImpl();
+        item = new Item(1, "вещь", "описание", true, userMapper.toUser(user), null);
 
         bookingDtoIn = new BookingDtoIn(1,
                 LocalDateTime.of(2024, 6, 20, 0, 0),
