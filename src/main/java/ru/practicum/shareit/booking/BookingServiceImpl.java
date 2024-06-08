@@ -2,6 +2,9 @@ package ru.practicum.shareit.booking;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.dto.BookingDtoIn;
@@ -99,50 +102,90 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public Collection<BookingDtoOut> getAllForBooker(int userId, String state) {
-        if (userService.getUserById(userId) == null) {
-            throw new ObjectNotFoundException("Пользователь не найден");
-        }
+    public Collection<BookingDtoOut> getAllForBooker(int userId, String state, Integer from, Integer size) {
+        userService.getUserById(userId);
         LocalDateTime now = LocalDateTime.now();
-        if (state.equals(State.ALL.toString())) {
-            return bookingMapper.toBookingDtoOut(bookingRepository.findAllByBookerIdOrderByEndDesc(userId));
-        } else if (state.equals(State.CURRENT.toString())) {
-            return bookingMapper.toBookingDtoOut(bookingRepository.findAllByBookerIdAndEndIsAfterAndStartIsBeforeOrderByEndDesc(
-                    userId, now, now));
-        } else if (state.equals(State.PAST.toString())) {
-            return bookingMapper.toBookingDtoOut(bookingRepository.findAllByBookerIdAndEndIsBeforeOrderByEndDesc(userId, now));
-        } else if (state.equals(State.FUTURE.toString())) {
-            return bookingMapper.toBookingDtoOut(bookingRepository.findAllByBookerIdAndStartIsAfterOrderByEndDesc(userId, now));
-        } else if (state.equals(State.REJECTED.toString())) {
-            return bookingMapper.toBookingDtoOut(bookingRepository.findAllByBookerIdAndStatusOrderByEndDesc(userId, Status.REJECTED));
-        } else if (state.equals(State.WAITING.toString())) {
-            return bookingMapper.toBookingDtoOut(bookingRepository.findAllByBookerIdAndStatusOrderByEndDesc(userId, Status.WAITING));
+        if (from == null || size == null) {
+            if (state.equals(State.ALL.toString())) {
+                return bookingMapper.toBookingDtoOut(bookingRepository.findAllByBookerIdOrderByEndDesc(userId));
+            } else if (state.equals(State.CURRENT.toString())) {
+                return bookingMapper.toBookingDtoOut(bookingRepository.findAllByBookerIdAndEndIsAfterAndStartIsBeforeOrderByEndDesc(
+                        userId, now, now));
+            } else if (state.equals(State.PAST.toString())) {
+                return bookingMapper.toBookingDtoOut(bookingRepository.findAllByBookerIdAndEndIsBeforeOrderByEndDesc(userId, now));
+            } else if (state.equals(State.FUTURE.toString())) {
+                return bookingMapper.toBookingDtoOut(bookingRepository.findAllByBookerIdAndStartIsAfterOrderByEndDesc(userId, now));
+            } else if (state.equals(State.REJECTED.toString())) {
+                return bookingMapper.toBookingDtoOut(bookingRepository.findAllByBookerIdAndStatusOrderByEndDesc(userId, Status.REJECTED));
+            } else if (state.equals(State.WAITING.toString())) {
+                return bookingMapper.toBookingDtoOut(bookingRepository.findAllByBookerIdAndStatusOrderByEndDesc(userId, Status.WAITING));
+            } else {
+                throw new ValidationException("Unknown state: UNSUPPORTED_STATUS");
+            }
         } else {
-            throw new ValidationException("Unknown state: UNSUPPORTED_STATUS");
+            validatePageParams(from, size);
+            int pageNumber = from / size;
+            Pageable pageable = PageRequest.of(pageNumber, size, Sort.by(Sort.Direction.DESC, "end"));
+            if (state.equals(State.ALL.toString())) {
+                return bookingMapper.toBookingDtoOut(bookingRepository.findAllByBookerId(userId, pageable).toList());
+            } else if (state.equals(State.CURRENT.toString())) {
+                return bookingMapper.toBookingDtoOut(bookingRepository.findAllByBookerIdAndEndIsAfterAndStartIsBefore(
+                        userId, now, now, pageable).toList());
+            } else if (state.equals(State.PAST.toString())) {
+                return bookingMapper.toBookingDtoOut(bookingRepository.findAllByBookerIdAndEndIsBefore(userId, now, pageable).toList());
+            } else if (state.equals(State.FUTURE.toString())) {
+                return bookingMapper.toBookingDtoOut(bookingRepository.findAllByBookerIdAndStartIsAfter(userId, now, pageable).toList());
+            } else if (state.equals(State.REJECTED.toString())) {
+                return bookingMapper.toBookingDtoOut(bookingRepository.findAllByBookerIdAndStatus(userId, Status.REJECTED, pageable).toList());
+            } else if (state.equals(State.WAITING.toString())) {
+                return bookingMapper.toBookingDtoOut(bookingRepository.findAllByBookerIdAndStatus(userId, Status.WAITING, pageable).toList());
+            } else {
+                throw new ValidationException("Unknown state: UNSUPPORTED_STATUS");
+            }
         }
     }
 
     @Override
-    public Collection<BookingDtoOut> getAllForOwner(int userId, String state) {
+    public Collection<BookingDtoOut> getAllForOwner(int userId, String state, Integer from, Integer size) {
         LocalDateTime now = LocalDateTime.now();
-        if (userService.getUserById(userId) == null) {
-            throw new ObjectNotFoundException("Пользователь не найден");
-        }
-        if (state.equals(State.ALL.toString())) {
-            return bookingMapper.toBookingDtoOut(bookingRepository.findAllByItemOwnerIdOrderByEndDesc(userId));
-        } else if (state.equals(State.CURRENT.toString())) {
-            return bookingMapper.toBookingDtoOut(bookingRepository.findAllByItemOwnerIdAndEndIsAfterAndStartIsBeforeOrderByEndDesc(
-                    userId, now, now));
-        } else if (state.equals(State.PAST.toString())) {
-            return bookingMapper.toBookingDtoOut(bookingRepository.findAllByItemOwnerIdAndEndIsBeforeOrderByEndDesc(userId, now));
-        } else if (state.equals(State.FUTURE.toString())) {
-            return bookingMapper.toBookingDtoOut(bookingRepository.findAllByItemOwnerIdAndStartIsAfterOrderByEndDesc(userId, now));
-        } else if (state.equals(State.REJECTED.toString())) {
-            return bookingMapper.toBookingDtoOut(bookingRepository.findAllByItemOwnerIdAndStatusOrderByEndDesc(userId, Status.REJECTED));
-        } else if (state.equals(State.WAITING.toString())) {
-            return bookingMapper.toBookingDtoOut(bookingRepository.findAllByItemOwnerIdAndStatusOrderByEndDesc(userId, Status.WAITING));
+        userService.getUserById(userId);
+        if (from == null || size == null) {
+            if (state.equals(State.ALL.toString())) {
+                return bookingMapper.toBookingDtoOut(bookingRepository.findAllByItemOwnerIdOrderByEndDesc(userId));
+            } else if (state.equals(State.CURRENT.toString())) {
+                return bookingMapper.toBookingDtoOut(bookingRepository.findAllByItemOwnerIdAndEndIsAfterAndStartIsBeforeOrderByEndDesc(
+                        userId, now, now));
+            } else if (state.equals(State.PAST.toString())) {
+                return bookingMapper.toBookingDtoOut(bookingRepository.findAllByItemOwnerIdAndEndIsBeforeOrderByEndDesc(userId, now));
+            } else if (state.equals(State.FUTURE.toString())) {
+                return bookingMapper.toBookingDtoOut(bookingRepository.findAllByItemOwnerIdAndStartIsAfterOrderByEndDesc(userId, now));
+            } else if (state.equals(State.REJECTED.toString())) {
+                return bookingMapper.toBookingDtoOut(bookingRepository.findAllByItemOwnerIdAndStatusOrderByEndDesc(userId, Status.REJECTED));
+            } else if (state.equals(State.WAITING.toString())) {
+                return bookingMapper.toBookingDtoOut(bookingRepository.findAllByItemOwnerIdAndStatusOrderByEndDesc(userId, Status.WAITING));
+            } else {
+                throw new ValidationException("Unknown state: UNSUPPORTED_STATUS");
+            }
         } else {
-            throw new ValidationException("Unknown state: UNSUPPORTED_STATUS");
+            validatePageParams(from, size);
+            int pageNumber = from / size;
+            Pageable pageable = PageRequest.of(pageNumber, size, Sort.by(Sort.Direction.DESC, "end"));
+            if (state.equals(State.ALL.toString())) {
+                return bookingMapper.toBookingDtoOut(bookingRepository.findAllByItemOwnerId(userId, pageable).toList());
+            } else if (state.equals(State.CURRENT.toString())) {
+                return bookingMapper.toBookingDtoOut(bookingRepository.findAllByItemOwnerIdAndEndIsAfterAndStartIsBefore(
+                        userId, now, now, pageable).toList());
+            } else if (state.equals(State.PAST.toString())) {
+                return bookingMapper.toBookingDtoOut(bookingRepository.findAllByItemOwnerIdAndEndIsBefore(userId, now, pageable).toList());
+            } else if (state.equals(State.FUTURE.toString())) {
+                return bookingMapper.toBookingDtoOut(bookingRepository.findAllByItemOwnerIdAndStartIsAfter(userId, now, pageable).toList());
+            } else if (state.equals(State.REJECTED.toString())) {
+                return bookingMapper.toBookingDtoOut(bookingRepository.findAllByItemOwnerIdAndStatus(userId, Status.REJECTED, pageable).toList());
+            } else if (state.equals(State.WAITING.toString())) {
+                return bookingMapper.toBookingDtoOut(bookingRepository.findAllByItemOwnerIdAndStatus(userId, Status.WAITING, pageable).toList());
+            } else {
+                throw new ValidationException("Unknown state: UNSUPPORTED_STATUS");
+            }
         }
     }
 
@@ -158,7 +201,8 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public Booking getBookingForComment(Integer userId, Integer itemId) {
-        return bookingRepository.findFirst1ByBookerIdAndItemIdOrderByEndAsc(userId, itemId);
+        Optional<Booking> booking = bookingRepository.findFirst1ByBookerIdAndItemIdOrderByEndAsc(userId, itemId);
+        return booking.orElse(null);
     }
 
     private void validateBooking(BookingDtoIn bookingDtoIn) {
@@ -181,6 +225,15 @@ public class BookingServiceImpl implements BookingService {
         ) {
             log.info("Даты бронирования некорректные: " + bookingDtoIn.getStart() + ", " + bookingDtoIn.getEnd());
             throw new ValidationException("Даты бронирования некорректные");
+        }
+    }
+
+    private void validatePageParams(Integer from, Integer size) {
+        if (from < 0) {
+            throw new ValidationException("Индекс элемента не может быть меньше 0");
+        }
+        if (size < 1) {
+            throw new ValidationException("Количество элементов не может быть меньше 1");
         }
     }
 }

@@ -1,10 +1,12 @@
 package ru.practicum.shareit.user.dto;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
-import org.springframework.stereotype.Component;
+import lombok.NoArgsConstructor;
 
-@Component
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class UserDto {
     private Integer id;
     private String name;

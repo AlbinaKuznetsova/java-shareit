@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.exceptions.ObjectNotFoundException;
 import ru.practicum.shareit.exceptions.ValidationException;
+import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.model.User;
 
 import java.util.Collection;
@@ -17,24 +18,26 @@ import java.util.Optional;
 @Transactional
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
+    private final UserMapper userMapper;
 
     @Override
-    public User createUser(User user) {
+    public UserDto createUser(UserDto userDto) {
+        User user = userMapper.toUser(userDto);
         validateEmail(user.getEmail());
         log.info("Добавлен пользователь {}", user);
-        return userRepository.save(user);
+        return userMapper.toUserDto(userRepository.save(user));
     }
 
     @Override
-    public Collection<User> getAllUsers() {
-        return userRepository.findAll();
+    public Collection<UserDto> getAllUsers() {
+        return userMapper.toUserDto(userRepository.findAll());
     }
 
     @Override
-    public User getUserById(int userId) {
+    public UserDto getUserById(int userId) {
         Optional<User> opUser = userRepository.findById(userId);
         if (opUser.isPresent()) {
-            return opUser.get();
+            return userMapper.toUserDto(opUser.get());
         } else {
             throw new ObjectNotFoundException("Пользователь не найден");
         }
@@ -42,7 +45,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User updateUser(int userId, User user) {
+    public UserDto updateUser(int userId, UserDto userDto) {
         User userFromDb = null;
         Optional<User> opUser = userRepository.findById(userId);
         if (opUser.isPresent()) {
@@ -51,13 +54,13 @@ public class UserServiceImpl implements UserService {
             log.info("Пользователь с id {} не найден.", userId);
             throw new ObjectNotFoundException("Пользователь не найден");
         }
-        if (user.getName() != null) {
-            userFromDb.setName(user.getName());
+        if (userDto.getName() != null) {
+            userFromDb.setName(userDto.getName());
         }
-        if (user.getEmail() != null) {
-            userFromDb.setEmail(user.getEmail());
+        if (userDto.getEmail() != null) {
+            userFromDb.setEmail(userDto.getEmail());
         }
-        return userRepository.save(userFromDb);
+        return userMapper.toUserDto(userRepository.save(userFromDb));
     }
 
     @Override

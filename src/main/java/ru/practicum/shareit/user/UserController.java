@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import ru.practicum.shareit.user.model.User;
+import ru.practicum.shareit.user.dto.UserDto;
 
 import java.util.Collection;
 
@@ -15,23 +15,23 @@ public class UserController {
     private final UserService userService;
 
     @PostMapping
-    public ResponseEntity<User> createUser(@RequestBody User user) {
-        return ResponseEntity.ok().body(userService.createUser(user));
+    public ResponseEntity<UserDto> createUser(@RequestBody UserDto userDto) {
+        return ResponseEntity.ok().body(userService.createUser(userDto));
     }
 
     @GetMapping
-    public ResponseEntity<Collection<User>> getAllUsers() {
+    public ResponseEntity<Collection<UserDto>> getAllUsers() {
         return ResponseEntity.ok().body(userService.getAllUsers());
     }
 
     @GetMapping("/{userId}")
-    public ResponseEntity<User> getUserById(@PathVariable int userId) {
+    public ResponseEntity<UserDto> getUserById(@PathVariable int userId) {
         return ResponseEntity.ok().body(userService.getUserById(userId));
     }
 
     @PatchMapping("/{userId}")
-    public ResponseEntity<User> updateUser(@PathVariable int userId, @RequestBody User user) {
-        return ResponseEntity.ok().body(userService.updateUser(userId, user));
+    public ResponseEntity<UserDto> updateUser(@PathVariable int userId, @RequestBody UserDto userDto) {
+        return ResponseEntity.ok().body(userService.updateUser(userId, userDto));
     }
 
     @DeleteMapping("/{userId}")
