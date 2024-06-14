@@ -9,6 +9,8 @@ services:
       - POSTGRES_PASSWORD=admin
       - POSTGRES_USER=admin
       - POSTGRES_DB=shareit
+    volumes:
+      - /var/lib/postgresql/data/
     healthcheck:
       test: pg_isready -q -d $$POSTGRES_DB -U $$POSTGRES_USER
       timeout: 5s
@@ -17,6 +19,7 @@ services:
 
   server:
     build: server
+    restart: on-failure
     image: shareit-server
     container_name: shareit-server
     ports:
@@ -30,6 +33,7 @@ services:
 
   gateway:
     build: gateway
+    restart: on-failure
     image: shareit-gateway
     container_name: shareit-gateway
     ports:
